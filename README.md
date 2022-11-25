@@ -1,8 +1,7 @@
-## Build your ubuntu cloud-init template
-* Copy script `build_minimal.sh` over to your Proxmox server
-* Jump into your Proxmox server and execute the script
+### Build your ubuntu cloud-init template
+* On your Proxmox server
     ```
-    sudo ./build_minimal.sh
+    curl -s https://raw.githubusercontent.com/khanh-ph/proxmox-scripts/master/create-cloud-init-VM-template.sh | sudo bash
     ```
 * Verify that the template `ubuntu-2004-cloudinit-minimal` has been created
     ```

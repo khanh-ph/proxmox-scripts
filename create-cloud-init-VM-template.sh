@@ -1,8 +1,8 @@
 #!/bin/sh
-DOWNLOAD_BASE_URL=https://cloud-images.ubuntu.com/minimal/releases/focal/release
-CLOUD_IMG_FILENAME=ubuntu-20.04-minimal-cloudimg-amd64.img
+DOWNLOAD_BASE_URL=https://cloud-images.ubuntu.com/releases/22.04/release
+CLOUD_IMG_FILENAME=ubuntu-22.04-server-cloudimg-amd64.img
 TMPL_ID=9000
-TMPL_NAME=ubuntu-2004-cloudinit-minimal
+TMPL_NAME=ubuntu-2204
 PROXMOX_STORAGE=local-lvm
 
 rm -f _${CLOUD_IMG_FILENAME}

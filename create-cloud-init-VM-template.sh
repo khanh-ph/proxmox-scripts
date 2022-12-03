@@ -1,35 +1,63 @@
-#!/bin/sh
-DOWNLOAD_BASE_URL=https://cloud-images.ubuntu.com/releases/22.04/release
-CLOUD_IMG_FILENAME=ubuntu-22.04-server-cloudimg-amd64.img
-TMPL_ID=9000
-TMPL_NAME=ubuntu-2204
-PROXMOX_STORAGE=local-lvm
+#!/bin/bash
+ubuntuImageURL=https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img
+ubuntuImageFilename=$(basename $ubuntuImageURL)
+proxmoxTemplateID="${TMPL_ID:-9000}"
+proxmoxTemplateName="${TMPL_NAME:-ubuntu-2204}"
+scriptTmpPath=/tmp/promox-scripts
 
-rm -f _${CLOUD_IMG_FILENAME}
+init () {
+    [ $(id -u) == 0 ] && apt-get install sudo -y
+    clean
+    installRequirements
+    mkdir -p $scriptTmpPath
+    vmDiskStorage="${PM_STORAGE:-$(sudo pvesm status | awk '$2 != "dir" {print $1}' | tail -n 1)}"
+    cd $scriptTmpPath
+}
 
-if ! [ -f "$CLOUD_IMG_FILENAME" ]; then \
- wget $DOWNLOAD_BASE_URL/$CLOUD_IMG_FILENAME;
-fi
+installRequirements () {
 
-sudo qm destroy $TMPL_ID --purge || true
-sudo cp $CLOUD_IMG_FILENAME _${CLOUD_IMG_FILENAME}
-sudo apt update -y && sudo apt install libguestfs-tools -y
+    sudo dpkg -l libguestfs-tools &> /dev/null || \
+    sudo apt update -y && sudo apt install libguestfs-tools -y
+}
 
-# Install qemu-guest-agent
-sudo virt-customize -a _${CLOUD_IMG_FILENAME} --run-command 'sudo apt update -y && sudo apt install qemu-guest-agent -y'
-sudo virt-customize -a _${CLOUD_IMG_FILENAME} --run-command 'sudo systemctl start qemu-guest-agent'
+getImage () {
+    local _img=/tmp/$ubuntuImageFilename
+    if ! [ -f "$_img" ]
+    then
+        wget $ubuntuImageURL -O $_img
+        sudo cp $_img $ubuntuImageFilename
+    fi
+}
 
-# Reset the machine ID
-sudo virt-customize -x -a _${CLOUD_IMG_FILENAME} --run-command 'sudo echo -n >/etc/machine-id'
+installQemuGA () {
+    sudo virt-customize -a $ubuntuImageFilename \
+    --run-command 'sudo apt update -y && sudo apt install qemu-guest-agent -y && sudo systemctl start qemu-guest-agent'
+}
 
-# Configure default settings
-sudo qm create $TMPL_ID --name $TMPL_NAME --memory 2048 --cores 2 --net0 virtio,bridge=vmbr0
-sudo qm importdisk $TMPL_ID _${CLOUD_IMG_FILENAME} $PROXMOX_STORAGE
-sudo qm set $TMPL_ID --scsihw virtio-scsi-single --scsi0 $PROXMOX_STORAGE:vm-$TMPL_ID-disk-0
-sudo qm set $TMPL_ID --boot c --bootdisk scsi0
-sudo qm set $TMPL_ID --ide2 $PROXMOX_STORAGE:cloudinit
-sudo qm set $TMPL_ID --serial0 socket --vga serial0
-sudo qm set $TMPL_ID --agent enabled=1,fstrim_cloned_disks=1
+resetMachineID () {
+    sudo virt-customize -x -a $ubuntuImageFilename \
+    --run-command 'sudo echo -n >/etc/machine-id'
+}
 
-# Set the VM as a template
-sudo qm template $TMPL_ID
+createProxmoxVMTemplate () {
+    sudo qm destroy $proxmoxTemplateID --purge || true
+    sudo qm create $proxmoxTemplateID --name $proxmoxTemplateName --memory 2048 --cores 2 --net0 virtio,bridge=vmbr0
+    sudo qm importdisk $proxmoxTemplateID $ubuntuImageFilename $vmDiskStorage
+    sudo qm set $proxmoxTemplateID --scsihw virtio-scsi-single --scsi0 $vmDiskStorage:vm-$proxmoxTemplateID-disk-0
+    sudo qm set $proxmoxTemplateID --boot c --bootdisk scsi0
+    sudo qm set $proxmoxTemplateID --ide2 $vmDiskStorage:cloudinit
+    sudo qm set $proxmoxTemplateID --serial0 socket --vga serial0
+    sudo qm set $proxmoxTemplateID --agent enabled=1,fstrim_cloned_disks=1
+    sudo qm template $proxmoxTemplateID
+}
+
+clean () { 
+    rm -rf $scriptTmpPath 
+}
+
+init
+getImage
+installQemuGA
+resetMachineID
+createProxmoxVMTemplate
+clean

@@ -6,7 +6,7 @@ proxmoxTemplateName="${TMPL_NAME:-ubuntu-2204}"
 scriptTmpPath=/tmp/promox-scripts
 
 init () {
-    [ $(id -u) == 0 ] && apt-get install sudo -y
+    [ $(id -u) == 0 ] && apt-get update && apt-get install sudo -y || exit 1
     clean
     installRequirements
     mkdir -p $scriptTmpPath

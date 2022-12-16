@@ -1,6 +1,7 @@
 #!/bin/bash
 ubuntuImageURL=https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img
 ubuntuImageFilename=$(basename $ubuntuImageURL)
+ubuntuImageBaseURL=$(dirname $ubuntuImageURL)
 proxmoxTemplateID="${TMPL_ID:-9000}"
 proxmoxTemplateName="${TMPL_NAME:-ubuntu-2204}"
 scriptTmpPath=/tmp/promox-scripts
@@ -22,11 +23,15 @@ installRequirements () {
 
 getImage () {
     local _img=/tmp/$ubuntuImageFilename
-    if ! [ -f "$_img" ]
+    local imgSHA256SUM=$(curl -s $ubuntuImageBaseURL/SHA256SUMS | grep $ubuntuImageFilename | awk '{print $1}')
+    if [ -f "$_img" ] && [[ $(sha256sum $_img | awk '{print $1}') == $imgSHA256SUM ]]
     then
+        echo "The image file exists and the signature is OK"
+    else
         wget $ubuntuImageURL -O $_img
-        sudo cp $_img $ubuntuImageFilename
     fi
+    
+    sudo cp $_img $ubuntuImageFilename
 }
 
 installQemuGA () {

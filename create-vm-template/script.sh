@@ -48,8 +48,8 @@ createProxmoxVMTemplate () {
     sudo qm destroy $proxmoxTemplateID --purge || true
     sudo qm create $proxmoxTemplateID --name $proxmoxTemplateName --memory 2048 --cores 2 --net0 virtio,bridge=vmbr0
     sudo qm importdisk $proxmoxTemplateID $ubuntuImageFilename $vmDiskStorage
-    sudo qm set $proxmoxTemplateID --scsihw virtio-scsi-single --scsi0 $vmDiskStorage:vm-$proxmoxTemplateID-disk-0
-    sudo qm set $proxmoxTemplateID --boot c --bootdisk scsi0
+    sudo qm set $proxmoxTemplateID --scsihw virtio-scsi-single --virtio0 $vmDiskStorage:vm-$proxmoxTemplateID-disk-0
+    sudo qm set $proxmoxTemplateID --boot c --bootdisk virtio0
     sudo qm set $proxmoxTemplateID --ide2 $vmDiskStorage:cloudinit
     sudo qm set $proxmoxTemplateID --serial0 socket --vga serial0
     sudo qm set $proxmoxTemplateID --agent enabled=1,fstrim_cloned_disks=1

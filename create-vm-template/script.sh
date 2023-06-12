@@ -34,6 +34,11 @@ getImage () {
     sudo cp $_img $ubuntuImageFilename
 }
 
+enableCPUHotplug () {
+    sudo virt-customize -a $ubuntuImageFilename \
+    --run-command 'echo "SUBSYSTEM==\"cpu\", ACTION==\"add\", TEST==\"online\", ATTR{online}==\"0\", ATTR{online}=\"1\"" > /lib/udev/rules.d/80-hotplug-cpu.rules' 
+}
+
 installQemuGA () {
     sudo virt-customize -a $ubuntuImageFilename \
     --run-command 'sudo apt update -y && sudo apt install qemu-guest-agent -y && sudo systemctl start qemu-guest-agent'
@@ -62,6 +67,7 @@ clean () {
 
 init
 getImage
+enableCPUHotplug
 installQemuGA
 resetMachineID
 createProxmoxVMTemplate

@@ -11,7 +11,7 @@ init () {
     clean
     installRequirements
     mkdir -p $scriptTmpPath
-    vmDiskStorage="${PM_STORAGE:-$(sudo pvesm status | awk '$2 != "dir" {print $1}' | tail -n 1)}"
+    vmDiskStorage="${PM_STORAGE:-$(sudo pvesm status | awk '$2 == "dir" {print $1}' | tail -n 1)}"
     cd $scriptTmpPath
 }
 

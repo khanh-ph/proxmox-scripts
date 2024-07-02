@@ -1,9 +1,9 @@
 #!/bin/bash
-ubuntuImageURL=https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img
+ubuntuImageURL=https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img
 ubuntuImageFilename=$(basename $ubuntuImageURL)
 ubuntuImageBaseURL=$(dirname $ubuntuImageURL)
 proxmoxTemplateID="${TMPL_ID:-9000}"
-proxmoxTemplateName="${TMPL_NAME:-ubuntu-2204}"
+proxmoxTemplateName="${TMPL_NAME:-ubuntu-2404}"
 scriptTmpPath=/tmp/proxmox-scripts
 
 init () {

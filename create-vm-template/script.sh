@@ -35,9 +35,9 @@ print_ok () {
 }
 
 # Default values
-df_ubuntu_ver="22.04"
+df_ubuntu_ver="24.04"
 df_vm_tmpl_id="9000"
-df_vm_tmpl_name="ubuntu-2204"
+df_vm_tmpl_name="ubuntu-2404"
 
 # Prompt for user input
 read -p "Enter Ubuntu version (default: ${df_ubuntu_ver}): " ubuntu_ver
